@@ -1629,8 +1629,8 @@
   min-height: 0;
   margin-top: 1px;
   color: #78877d;
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 14px;
+  line-height: 1.4;
 }
 .weather-summary-card .weather-readings {
   grid-template-columns: 1fr 1fr;
@@ -1643,11 +1643,11 @@
   border-top: 1px solid #edf1ec;
   padding-top: 5px;
   color: #77867a;
-  font-size: 10px;
+  font-size: 14px;
 }
 .weather-summary-card .weather-line b {
   color: #3b6447;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
 }
 .weather-summary-card .weather-line .neutral-text {
@@ -1655,7 +1655,7 @@
 }
 .weather-summary-card .weather-cache-note {
   grid-column: 1/-1;
-  font-size: 9px;
+  font-size: 13px;
   color: #77867a;
 }
 .weather-unavailable {
@@ -2194,18 +2194,19 @@
 }
 .app-shell .workspace-page-heading .eyebrow {
   color: #637c69;
-  font-size: 10px;
+  font-size: 13px;
   letter-spacing: .06em;
 }
 .app-shell .workspace-page-heading h2 {
   margin: .25rem 0 .25rem;
   color: var(--ink);
-  font-size: 25px;
+  font-size: 30px;
   letter-spacing: -.6px;
 }
 .app-shell .workspace-page-heading p {
   color: #68796d;
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 1.55;
 }
 .app-shell .workspace-card-grid {
   gap: 16px;
@@ -2225,18 +2226,18 @@
 }
 .app-shell .workspace-panel-heading h3 {
   color: #304537;
-  font-size: 15px;
+  font-size: 20px;
   letter-spacing: -.1px;
 }
 .app-shell .workspace-panel p {
   color: #66766b;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
 }
 .app-shell .workspace-metrics span {
   border-color: #edf1ec;
   color: #728176;
-  font-size: 12px;
+  font-size: 14px;
 }
 .app-shell .workspace-metrics strong {
   color: #314b39;
@@ -2244,25 +2245,18 @@
 .app-shell .workspace-error {
   color: #905d4d !important;
 }
-.app-shell .workspace-records>div {
-  border-color: #e8eee8;
-  color: #68786d;
-  font-size: 11px;
-}
-.app-shell .workspace-records>div:first-child {
-  color: #455d4c;
-}
 .app-shell .indicator-panel {
   padding: 2px 12px;
 }
 .app-shell .indicator-table th,.app-shell .indicator-table td {
-  padding: 13px 10px;
+  padding: 14px 12px;
   border-color: #e8eee8;
-  font-size: 12px;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .app-shell .indicator-table thead th {
   color: #6b7c70;
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: .045em;
 }
 .app-shell .indicator-table tbody th {
@@ -2278,7 +2272,7 @@
   border-radius: 0;
   background: transparent;
   color: #617267;
-  font-size: 12px;
+  font-size: 14px;
 }
 .app-shell .planning-panel {
   border: 1px solid var(--border);
@@ -2287,19 +2281,91 @@
   background: #fff;
   box-shadow: var(--shadow-soft);
 }
-.app-shell .planning-resource-row {
-  border-color: #e9eee8;
+.planning-table-scroll {
+  width: 100%;
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
 }
-.app-shell .planning-resource-row .resource-label {
-  color: #344a3a;
+.planning-table-scroll:focus-visible {
+  outline: 3px solid #4d9975;
+  outline-offset: 3px;
+}
+.planning-table {
+  width: 100%;
+  min-width: 790px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: var(--slate);
+  font-size: 15px;
+}
+.planning-table th,
+.planning-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.planning-table thead th {
+  background: var(--surface-muted);
+  color: #43584a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.planning-table tbody th {
+  color: #304537;
+  font-size: 15px;
+  font-weight: 600;
+}
+.planning-table th:nth-child(1) { width: 23%; }
+.planning-table th:nth-child(2) { width: 25%; }
+.planning-table th:nth-child(3) { width: 17%; }
+.planning-table th:nth-child(4) { width: 18%; }
+.planning-table th:nth-child(5) { width: 17%; }
+.planning-resource-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.planning-quantity-cell {
+  text-align: right !important;
+}
+.planning-quantity-cell .resource-input {
+  width: 136px;
+  max-width: 100%;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+.planning-quantity-cell .resource-input input {
+  width: 72px;
+  min-width: 0;
+  font-size: 15px;
+}
+.planning-quantity-cell .resource-input span {
   font-size: 14px;
 }
-.app-shell .planning-resource-row .resource-label small {
-  color: #718075;
-  font-size: 11px;
+.planning-unavailable,
+.planning-aggregate-only {
+  color: #5e7064;
+  font-size: 14px;
 }
-.app-shell .planning-resource-row .resource-input {
-  border-color: #d9e3d9;
+.planning-table tbody tr:last-child th,
+.planning-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.planning-table tbody tr:hover {
+  background: #f8faf7;
+}
+.planning-table-note {
+  margin: 12px 0 16px;
+  color: #617267;
+  font-size: 14px;
+  line-height: 1.55;
 }
 .app-shell .planning-result {
   border-color: #dce7dc;
@@ -2308,7 +2374,7 @@
 }
 .app-shell .planning-result .result-kicker {
   color: #6b7c70;
-  font-size: 10px;
+  font-size: 13px;
 }
 .app-shell .planning-result strong {
   color: #3f744e;
@@ -2316,7 +2382,7 @@
 }
 .app-shell .planning-result p {
   color: #6f7e73;
-  font-size: 11px;
+  font-size: 14px;
 }
 .app-shell .planning-result-score {
   color: #356d48;
@@ -2325,7 +2391,7 @@
   border-radius: 4px;
   background: #f8f4ec;
   color: #756b5b;
-  font-size: 12px;
+  font-size: 14px;
 }
 .workspace-skeleton {
   display: grid;
@@ -2516,26 +2582,20 @@
     justify-content: center;
     gap: 7px;
     padding: 7px;
-    font-size: 9px;
+    font-size: 11px;
   }
   .app-shell .map-data-label {
     top: 8px;
     left: 8px;
     max-width: calc(100% - 54px);
-    font-size: 8px;
-  }
-  .app-shell .section-heading h2 {
-    font-size: 16px;
-  }
-  .app-shell .trend-panel .chart-wrap {
-    height: 250px;
+    font-size: 10px;
   }
   .app-shell .chart-subtitle {
     flex-wrap: wrap;
-    font-size: 11px;
+    font-size: 13px;
   }
   .app-shell .chart-units {
-    font-size: 8px;
+    font-size: 12px;
   }
   .app-shell .lower-grid {
     gap: 12px;
@@ -2550,7 +2610,7 @@
   .app-shell .page-footer {
     align-items: flex-start;
     gap: 8px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .app-shell .page-footer>span:last-child {
     text-align: right;
@@ -2563,9 +2623,6 @@
     align-items: flex-start;
     flex-direction: column;
   }
-  .app-shell .workspace-page-heading h2 {
-    font-size: 22px;
-  }
   .app-shell .workspace-card-grid {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -2575,21 +2632,6 @@
   }
   .app-shell .planning-panel {
     padding: 15px;
-  }
-  .app-shell .planning-resource-row {
-    gap: 9px;
-  }
-  .app-shell .planning-resource-row .resource-label {
-    font-size: 13px;
-  }
-  .app-shell .planning-resource-row .resource-label small {
-    max-width: 190px;
-  }
-  .app-shell .planning-resource-row .resource-input {
-    padding: 0 7px;
-  }
-  .app-shell .planning-resource-row .resource-input input {
-    width: 52px;
   }
 }
 @media (prefers-reduced-motion:reduce) {
@@ -2605,11 +2647,11 @@
 /* 3. Typography tokens and hierarchy — original Typography.css order preserved. */
 
 :root {
-  --type-page: clamp(1.9rem,2.8vw,2.35rem);
-  --type-section: 1.125rem;
-  --type-body: .9375rem;
-  --type-detail: .8125rem;
-  --type-label: .6875rem;
+  --type-page: clamp(1.8rem,2.2vw,2.125rem);
+  --type-section: 1.25rem;
+  --type-body: 1rem;
+  --type-detail: .875rem;
+  --type-label: .8125rem;
   --type-kpi: 1.875rem;
 }
 .app-shell {
@@ -2639,23 +2681,23 @@
   line-height: 1.1;
 }
 .app-shell .summary-unit {
-  font-size: .8125rem;
+  font-size: .875rem;
 }
 .app-shell .summary-foot,.app-shell .weather-line {
   font-size: var(--type-detail);
 }
 .app-shell .badge {
-  font-size: .6875rem;
+  font-size: .75rem;
 }
 .app-shell .soft-tag,.app-shell .trend {
-  font-size: .75rem;
+  font-size: .8125rem;
 }
 .app-shell .demo-banner {
   font-size: .8125rem;
   line-height: 1.45;
 }
 .app-shell .demo-banner strong {
-  font-size: .6875rem;
+  font-size: .75rem;
 }
 .app-shell .select-control select {
   font-size: .875rem;
@@ -2674,22 +2716,22 @@
   line-height: 1.55;
 }
 .app-shell .map-coords,.app-shell .map-legend {
-  font-size: .6875rem;
+  font-size: .75rem;
 }
 .app-shell .selected-place strong {
   font-size: .875rem;
 }
 .app-shell .selected-place small {
-  font-size: .75rem;
+  font-size: .8125rem;
 }
 .app-shell .chart-subtitle {
   font-size: .8125rem;
 }
 .app-shell .chart-units {
-  font-size: .625rem;
+  font-size: .75rem;
 }
 .app-shell .chart-note {
-  font-size: .6875rem;
+  font-size: .8125rem;
 }
 .app-shell .weight-name,.app-shell .weight-value {
   font-size: .75rem;
@@ -2701,69 +2743,60 @@
   font-size: .875rem;
 }
 .app-shell .score-copy p,.app-shell .sim-intro {
-  font-size: .8125rem;
+  font-size: .875rem;
   line-height: 1.5;
 }
 .app-shell .score-footnote,.app-shell .sim-note {
-  font-size: .75rem;
+  font-size: .8125rem;
   line-height: 1.45;
 }
 .app-shell .resource-label {
-  font-size: .8125rem;
+  font-size: .875rem;
 }
 .app-shell .resource-label small {
-  font-size: .6875rem;
+  font-size: .75rem;
 }
 .app-shell .resource-input input {
-  font-size: .8125rem;
+  font-size: .875rem;
 }
 .app-shell .resource-input span {
-  font-size: .6875rem;
+  font-size: .75rem;
 }
 .app-shell .result-kicker {
-  font-size: .625rem;
+  font-size: .75rem;
 }
 .app-shell .readiness-result strong {
-  font-size: .8125rem;
+  font-size: .9375rem;
 }
 .app-shell .result-score {
   font-size: 1.375rem;
 }
 .app-shell .readiness-caption {
-  font-size: .625rem;
+  font-size: .75rem;
 }
 .app-shell .page-footer {
-  font-size: .6875rem;
+  font-size: .75rem;
   line-height: 1.5;
 }
 .app-shell .workspace-page-heading h2 {
-  font-size: 1.55rem;
+  font-size: 1.875rem;
 }
 .app-shell .workspace-page-heading p,.app-shell .workspace-panel p {
-  font-size: .875rem;
+  font-size: .9375rem;
   line-height: 1.55;
 }
 .app-shell .workspace-panel-heading h3 {
-  font-size: 1rem;
+  font-size: 1.25rem;
 }
 .app-shell .workspace-metrics span {
-  font-size: .8125rem;
-}
-.app-shell .workspace-records>div {
-  font-size: .75rem;
+  font-size: .875rem;
 }
 .app-shell .indicator-table th,.app-shell .indicator-table td {
-  font-size: .8125rem;
+  font-size: .9375rem;
   line-height: 1.45;
 }
 .app-shell .indicator-table thead th {
-  font-size: .6875rem;
-}
-.app-shell .planning-resource-row .resource-label {
-  font-size: .9375rem;
-}
-.app-shell .planning-resource-row .resource-label small {
-  font-size: .75rem;
+  font-size: .875rem;
 }
 .app-shell .planning-result strong {
   font-size: 1rem;
@@ -2780,7 +2813,7 @@
 @media (max-width:600px) {
   :root {
     --type-page: 1.75rem;
-    --type-section: 1rem;
+    --type-section: 1.125rem;
     --type-kpi: 1.75rem;
   }
   .app-shell .page-intro h1 {
@@ -2790,13 +2823,13 @@
     font-size: var(--type-section);
   }
   .app-shell .summary-label {
-    font-size: .625rem;
+    font-size: .75rem;
   }
   .app-shell .summary-value {
-    font-size: 1.625rem;
+    font-size: 1.75rem;
   }
   .app-shell .workspace-page-heading h2 {
-    font-size: 1.375rem;
+    font-size: 1.5625rem;
   }
 }
 
@@ -2903,5 +2936,124 @@
 
   .app-shell .header-actions {
     justify-content: flex-end;
+  }
+}
+
+/* Historical health records — improved readability */
+
+.app-shell .workspace-records-table-wrap {
+  width: 100%;
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.app-shell .workspace-records-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.app-shell .workspace-records-table th,
+.app-shell .workspace-records-table td {
+  padding: 13px 15px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.app-shell .workspace-records-table thead th {
+  background: var(--surface-muted);
+  color: var(--sage-700);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.app-shell .workspace-records-table tbody td {
+  color: var(--slate);
+  font-size: 15px;
+}
+
+.app-shell .workspace-records-table th:nth-child(1),
+.app-shell .workspace-records-table td:nth-child(1) {
+  width: 25%;
+}
+
+.app-shell .workspace-records-table th:nth-child(2),
+.app-shell .workspace-records-table td:nth-child(2) {
+  width: 25%;
+}
+
+.app-shell .workspace-records-table th:nth-child(3),
+.app-shell .workspace-records-table td:nth-child(3) {
+  width: 50%;
+}
+
+.app-shell .workspace-records-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.app-shell .workspace-records-table tbody tr:hover {
+  background: var(--surface-muted);
+}
+
+.app-shell .records-description,
+.app-shell .records-footnote {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.app-shell .records-footnote {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.app-shell .record-source {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .app-shell .workspace-records-table th,
+  .app-shell .workspace-records-table td {
+    padding: 11px 12px;
+  }
+}
+/* Overview chart layout and spacing */
+
+.app-shell .trend-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-shell .trend-panel .chart-wrap {
+  height: auto;
+  min-height: 300px;
+  flex: 1 1 300px;
+  margin: 8px -5px 0;
+}
+
+.app-shell .trend-panel .chart-note {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .app-shell .trend-panel .chart-wrap {
+    height: 220px;
+    min-height: 220px;
+    flex-basis: 220px;
   }
 }
