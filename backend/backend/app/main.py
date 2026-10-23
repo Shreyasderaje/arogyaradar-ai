@@ -1,5 +1,4 @@
 
-
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -11,6 +10,7 @@ from services.weather_service import get_district_weather
 from services.scoring_service import calculate_preparedness_score
 from services.early_warning_service import predict_early_warning
 
+
 app = FastAPI(
     title="ArogyaRadar AI",
     description="Rural health early-warning and resource-readiness API",
@@ -19,9 +19,16 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5178",
+        "http://localhost:5179",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5178",
+        "http://127.0.0.1:5179",
+    ],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
 
@@ -77,15 +84,15 @@ def get_district(district_id: str):
         detail="District not found",
     )
 
+
 @app.get("/api/v1/districts/{district_id}/history")
 def district_history(district_id: str):
     return get_district_history(district_id)
+
+
 @app.get("/api/v1/districts/{district_id}/weather")
 def district_weather(district_id: str):
     return get_district_weather(district_id)
-
-from typing import Optional
-from fastapi import HTTPException, Query
 
 
 @app.get("/api/v1/scores")
@@ -113,7 +120,7 @@ def get_district_score(district_id: str):
     district_id = district_id.strip().lower()
 
     district = next(
-        (d for d in DISTRICTS if d["id"] == district_id),
+        (item for item in DISTRICTS if item["id"] == district_id),
         None,
     )
 
@@ -141,6 +148,7 @@ def get_district_score(district_id: str):
             "No risk score has been calculated."
         ),
     }
+
 
 class EarlyWarningInput(BaseModel):
     temperature_c: float = Field(ge=-10, le=60)

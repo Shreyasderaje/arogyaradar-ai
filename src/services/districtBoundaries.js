@@ -3,9 +3,15 @@ export const DISTRICT_BOUNDARY_PATH = '/data/karnataka-districts.geojson'
 const DISTRICT_NAME_ALIASES = {
   bangalore: 'bengaluru-urban',
   'bangalore-urban': 'bengaluru-urban',
+  'bangalore-rural': 'bengaluru-rural',
+  chamrajnagar: 'chamarajanagara',
+  chikmagalur: 'chikkamagaluru',
   belgaum: 'belagavi',
   gulbarga: 'kalaburagi',
   mysore: 'mysuru',
+  shimoga: 'shivamogga',
+  tumkur: 'tumakuru',
+  bijapur: 'vijayapura',
 }
 
 function normalize(value) {

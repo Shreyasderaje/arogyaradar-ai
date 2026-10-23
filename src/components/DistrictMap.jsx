@@ -32,7 +32,7 @@ function DistrictPicker({ districts, selectedDistrictId, onSelectDistrict }) {
           onClick={() => onSelectDistrict(district.id)}
         >
           <span>{district.name}</span>
-          <small>{district.coverage}</small>
+          <small>{district.coverage ?? 'API LISTED'}</small>
         </button>
       ))}
     </div>
@@ -64,8 +64,8 @@ function buildTooltip(feature, district, score) {
   content.append(name)
 
   const detail = document.createElement('div')
-  detail.textContent = district
-    ? `Synthetic preparedness score: ${score}/100 · ${district.coverage}`
+  detail.textContent = district && score !== null
+    ? `Synthetic preparedness score: ${score}/100 · ${district.coverage ?? 'demo profile'}`
     : 'No synthetic demo score available for this district.'
   content.append(detail)
   return content
@@ -86,13 +86,14 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
     const district = matchFeatureToDistrict(feature, districts)
     const score = scoreFor(district)
     const selected = district?.id === selectedDistrictId
+    const hasDemoScore = score !== null
     return {
-      color: selected ? '#f7fff9' : '#d6e2d8',
-      weight: selected ? 3 : 1.5,
+      color: selected ? '#f7fff9' : '#dce9df',
+      weight: selected ? 3.5 : 1.6,
       opacity: 0.95,
       fillColor: scoreColor(score),
-      fillOpacity: district ? (selected ? 0.88 : 0.68) : 0.24,
-      dashArray: district ? undefined : '3 4',
+      fillOpacity: hasDemoScore ? (selected ? 0.88 : 0.7) : (selected ? 0.42 : 0.24),
+      dashArray: hasDemoScore ? undefined : '3 4',
     }
   }, [districts, scoreFor, selectedDistrictId])
 
@@ -100,11 +101,24 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
     const district = matchFeatureToDistrict(feature, districts)
     layer.bindTooltip(buildTooltip(feature, district, scoreFor(district)), { sticky: true, direction: 'top', opacity: 0.98, className: 'demo-map-tooltip' })
     layer.on({
-      mouseover: (event) => event.target.setStyle({ color: '#ffffff', weight: 3, fillOpacity: district ? 0.92 : 0.4 }),
+      mouseover: (event) => event.target.setStyle({ color: '#ffffff', weight: 3.5, fillOpacity: scoreFor(district) !== null ? 0.94 : 0.48 }),
       mouseout: (event) => geoJsonRef.current?.resetStyle(event.target),
       click: () => { if (district) onSelectDistrict(district.id) },
     })
-    if (district) layer.on('add', () => { layer.getElement()?.setAttribute('role', 'button'); layer.getElement()?.setAttribute('aria-label', `Select ${district.name}, synthetic preparedness score ${scoreFor(district)} out of 100`) })
+    if (district) {
+      layer.on('add', () => {
+        const element = layer.getElement()
+        element?.setAttribute('role', 'button')
+        element?.setAttribute('tabindex', '0')
+        element?.setAttribute('aria-label', `Select ${district.name}${scoreFor(district) === null ? ', no synthetic demo profile' : `, synthetic preparedness score ${scoreFor(district)} out of 100`}`)
+      })
+      layer.on('keypress', (event) => {
+        if (event.originalEvent?.key === 'Enter' || event.originalEvent?.key === ' ') {
+          event.originalEvent.preventDefault()
+          onSelectDistrict(district.id)
+        }
+      })
+    }
   }, [districts, onSelectDistrict, scoreFor])
 
   useEffect(() => {
@@ -115,7 +129,7 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
       const district = matchFeatureToDistrict(layer.feature, districts)
       layer.setTooltipContent(buildTooltip(layer.feature, district, scoreFor(district)))
       const element = layer.getElement()
-      if (element && district) element.setAttribute('aria-label', `Select ${district.name}, synthetic preparedness score ${scoreFor(district)} out of 100`)
+      if (element && district) element.setAttribute('aria-label', `Select ${district.name}${scoreFor(district) === null ? ', no synthetic demo profile' : `, synthetic preparedness score ${scoreFor(district)} out of 100`}`)
     })
   }, [districts, scoreFor, selectedDistrictId, styleFeature])
 
@@ -125,7 +139,7 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
 function FitMapBounds({ bounds }) {
   const map = useMap()
   useEffect(() => {
-    if (bounds?.isValid()) map.fitBounds(bounds, { padding: [16, 16], animate: false })
+    if (bounds?.isValid()) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 8, animate: false })
   }, [bounds, map])
   return <MapResizer />
 }
@@ -160,7 +174,7 @@ function DistrictMap({ districts, selectedDistrictId, weights, onSelectDistrict 
 
   return (
     <div className="district-map-view" aria-label="Karnataka district boundaries with synthetic demo scores">
-      <MapContainer bounds={bounds} boundsOptions={{ padding: [16, 16] }} scrollWheelZoom={false} zoomControl className="district-leaflet-map">
+      <MapContainer bounds={bounds} boundsOptions={{ padding: [30, 30], maxZoom: 8 }} scrollWheelZoom zoomControl className="district-leaflet-map">
         <FitMapBounds bounds={bounds} />
         <DistrictPolygons data={boundaryData} districts={districts} selectedDistrictId={selectedDistrictId} weights={weights} onSelectDistrict={onSelectDistrict} />
       </MapContainer>
