@@ -1,30 +1,42 @@
-# Logs
-logs
-*.log
+
+# Frontend dependencies and build output
+node_modules/
+dist/
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Python virtual environments
+.venv/
+venv/
+ENV/
+
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
+*$py.class
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Testing and coverage
 .pytest_cache/
-.venv/
-.env
-backend/data/cache/
+.coverage
+htmlcov/
+
+# IDE and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Downloaded raw datasets
+data/raw/
+
+# Generated processed datasets
+data/processed/
