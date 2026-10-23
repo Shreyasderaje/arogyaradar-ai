@@ -88,11 +88,11 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
     const selected = district?.id === selectedDistrictId
     const hasDemoScore = score !== null
     return {
-      color: selected ? '#f7fff9' : '#dce9df',
-      weight: selected ? 3.5 : 1.6,
-      opacity: 0.95,
+      color: selected ? '#63e9a0' : '#dce9df',
+      weight: selected ? 4 : 1.35,
+      opacity: selected ? 1 : 0.78,
       fillColor: scoreColor(score),
-      fillOpacity: hasDemoScore ? (selected ? 0.88 : 0.7) : (selected ? 0.42 : 0.24),
+      fillOpacity: hasDemoScore ? (selected ? 0.82 : 0.58) : (selected ? 0.3 : 0.16),
       dashArray: hasDemoScore ? undefined : '3 4',
     }
   }, [districts, scoreFor, selectedDistrictId])
@@ -101,7 +101,7 @@ function DistrictPolygons({ data, districts, selectedDistrictId, weights, onSele
     const district = matchFeatureToDistrict(feature, districts)
     layer.bindTooltip(buildTooltip(feature, district, scoreFor(district)), { sticky: true, direction: 'top', opacity: 0.98, className: 'demo-map-tooltip' })
     layer.on({
-      mouseover: (event) => event.target.setStyle({ color: '#ffffff', weight: 3.5, fillOpacity: scoreFor(district) !== null ? 0.94 : 0.48 }),
+      mouseover: (event) => event.target.setStyle({ color: '#b5ffd0', weight: 4, fillOpacity: scoreFor(district) !== null ? 0.86 : 0.34 }),
       mouseout: (event) => geoJsonRef.current?.resetStyle(event.target),
       click: () => { if (district) onSelectDistrict(district.id) },
     })
@@ -184,6 +184,7 @@ function DistrictMap({ districts, selectedDistrictId, weights, onSelectDistrict 
         <span><i className="score-mid" /> 50–69</span>
         <span><i className="score-high" /> 70+</span>
         <span><i className="score-none" /> No demo profile</span>
+        <span><i className="score-selected" /> Selected district</span>
       </div>
     </div>
   )
