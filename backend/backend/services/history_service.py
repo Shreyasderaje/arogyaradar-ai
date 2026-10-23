@@ -41,13 +41,19 @@ def get_district_history(district_id: str):
     )
 
     aliases = {
-        "belagavi": "belgaum",
-        "bengaluru-rural": "bangalore rural",
-        "bengaluru-urban": "bangalore",
-        "mysuru": "mysore",
-        "shivamogga": "shimoga",
-        "tumakuru": "tumkur",
-    }
+    "belagavi": "belgaum",
+    "bengaluru-rural": "bangalore rural",
+    "bengaluru-urban": "bangalore",
+    "chamarajanagara": "chamrajnagar",
+    "chikkamagaluru": "chikmagalur",
+    "davangere": "davanagere",
+    "kalaburagi": "gulbarga",
+    "mysuru": "mysore",
+    "shivamogga": "shimoga",
+    "tumakuru": "tumkur",
+    "vijayanagara": "vijayanagara",
+    "vijayapura": "bijapur",
+}
 
     requested = district_id.strip().lower()
     district_key = aliases.get(requested, requested)
