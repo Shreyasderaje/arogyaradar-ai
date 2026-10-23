@@ -43,7 +43,14 @@ data/processed/
 
 # Generated ML artifacts
 models/
+
+# Keep data ignored except the required processed dengue dataset
 data/
+!data/
+data/*
+!data/processed/
+data/processed/*
+!data/processed/dengue_weather_merged.csv
 
 # Allow the district coordinate configuration
 !scripts/district_coordinates.csv
