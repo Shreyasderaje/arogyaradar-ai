@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from services.history_service import get_district_history
 from services.weather_service import get_district_weather
+from services.scoring_service import calculate_preparedness_score
 
 app = FastAPI(
     title="ArogyaRadar AI",
@@ -71,4 +72,28 @@ def district_history(district_id: str):
 @app.get("/api/v1/districts/{district_id}/weather")
 def district_weather(district_id: str):
     return get_district_weather(district_id)
+
+from typing import Optional
+from fastapi import HTTPException, Query
+
+
+@app.get("/api/v1/scores")
+def get_preparedness_score(
+    weather: Optional[float] = Query(default=None, ge=0, le=100),
+    health: Optional[float] = Query(default=None, ge=0, le=100),
+    vulnerability: Optional[float] = Query(default=None, ge=0, le=100),
+    readiness: Optional[float] = Query(default=None, ge=0, le=100),
+):
+    components = {
+        "weather": weather,
+        "health": health,
+        "vulnerability": vulnerability,
+        "readiness": readiness,
+    }
+
+    try:
+        return calculate_preparedness_score(components)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
 
