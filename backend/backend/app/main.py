@@ -4,11 +4,12 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from services.history_service import get_district_history
 from services.weather_service import get_district_weather
 from services.scoring_service import calculate_preparedness_score
-
+from services.early_warning_service import predict_early_warning
 
 app = FastAPI(
     title="ArogyaRadar AI",
@@ -140,3 +141,20 @@ def get_district_score(district_id: str):
             "No risk score has been calculated."
         ),
     }
+
+class EarlyWarningInput(BaseModel):
+    temperature_c: float = Field(ge=-10, le=60)
+    relative_humidity_pct: float = Field(ge=0, le=100)
+    rainfall_mm: float = Field(ge=0)
+    cases_last_7d: float = Field(ge=0)
+    cases_last_14d: float = Field(ge=0)
+
+
+@app.post("/api/v1/early-warning/predict")
+def early_warning_prediction(payload: EarlyWarningInput):
+    try:
+        return predict_early_warning(**payload.model_dump())
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))

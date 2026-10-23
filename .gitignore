@@ -40,3 +40,10 @@ data/raw/
 
 # Generated processed datasets
 data/processed/
+
+# Generated ML artifacts
+models/
+data/
+
+# Allow the district coordinate configuration
+!scripts/district_coordinates.csv
