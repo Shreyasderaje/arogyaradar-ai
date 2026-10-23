@@ -54,3 +54,7 @@ data/processed/*
 
 # Allow the district coordinate configuration
 !scripts/district_coordinates.csv
+
+!backend/backend/data/
+!backend/backend/data/processed/
+!backend/backend/data/processed/dengue_weather_merged.csv
