@@ -1,9 +1,14 @@
 
-from fastapi import FastAPI
+
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+
 from services.history_service import get_district_history
 from services.weather_service import get_district_weather
 from services.scoring_service import calculate_preparedness_score
+
 
 app = FastAPI(
     title="ArogyaRadar AI",
@@ -60,12 +65,17 @@ def get_districts():
 
 @app.get("/api/v1/districts/{district_id}")
 def get_district(district_id: str):
+    district_id = district_id.strip().lower()
+
     for district in DISTRICTS:
         if district["id"] == district_id:
             return district
 
-    from fastapi import HTTPException
-    raise HTTPException(status_code=404, detail="District not found")
+    raise HTTPException(
+        status_code=404,
+        detail="District not found",
+    )
+
 @app.get("/api/v1/districts/{district_id}/history")
 def district_history(district_id: str):
     return get_district_history(district_id)
@@ -97,3 +107,36 @@ def get_preparedness_score(
         raise HTTPException(status_code=422, detail=str(exc))
 
 
+@app.get("/api/v1/districts/{district_id}/score")
+def get_district_score(district_id: str):
+    district_id = district_id.strip().lower()
+
+    district = next(
+        (d for d in DISTRICTS if d["id"] == district_id),
+        None,
+    )
+
+    if district is None:
+        raise HTTPException(
+            status_code=404,
+            detail="District not found",
+        )
+
+    return {
+        "district_id": district["id"],
+        "district_name": district["name"],
+        "score": None,
+        "data_status": "unavailable",
+        "available_components": [],
+        "missing_components": [
+            "weather",
+            "health",
+            "vulnerability",
+            "readiness",
+        ],
+        "coverage_percent": 0,
+        "message": (
+            "District-specific scoring inputs are not yet validated. "
+            "No risk score has been calculated."
+        ),
+    }
