@@ -3355,6 +3355,41 @@
   .app-shell .panel { backdrop-filter: blur(5px); }
 }
 .app-shell .workspace-panel-heading h3 { color: #e3ede5; }
+.app-shell .assessment-panel { grid-column: 1 / -1; }
+.assessment-controls {
+  display: grid;
+  grid-template-columns: auto minmax(150px, 220px) 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.assessment-controls label { color: #d1dfd4; font-size: 14px; font-weight: 600; }
+.assessment-controls input {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #3b5944;
+  border-radius: 5px;
+  background: #122019;
+  color: #edf5ef;
+  color-scheme: dark;
+  font: inherit;
+}
+.assessment-controls input:focus-visible { outline: 2px solid #75c991; outline-offset: 2px; }
+.assessment-controls span,.assessment-note { color: #aebfb2; font-size: 13px; }
+.assessment-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+.assessment-details div { min-width: 0; padding: 10px 12px; border-left: 1px solid #36503d; background: #14211980; }
+.assessment-details dt { color: #aebfb2; font-size: 13px; }
+.assessment-details dd { margin: 4px 0 0; color: #e3ede5; font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.app-shell .assessment-panel .assessment-message { color: #dce9df; }
+.app-shell .assessment-panel .assessment-unavailable { color: #e0c58f; }
+.assessment-result { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 0; color: #aee0b8; }
+.assessment-result span { color: #d3e1d6; font-variant-numeric: tabular-nums; }
+.assessment-note { margin: 12px 0 0; }
 .app-shell .workspace-metrics span { border-color: #2d4134; color: #b5c5b9; }
 .app-shell .workspace-metrics strong { color: #e0ece3; }
 .app-shell .workspace-error { color: #f0a393 !important; }
@@ -3392,6 +3427,8 @@
   .app-shell .page-intro { padding: 21px; }
 }
 @media (max-width: 600px) {
+  .assessment-controls { grid-template-columns: 1fr; align-items: start; }
+  .assessment-details { grid-template-columns: 1fr; }
   .app-shell .page-intro { min-height: 178px; padding: 18px 16px; }
   .app-shell .page-intro.subpage-intro { min-height: 68px; padding: 13px 16px; }
   .app-shell .page-intro h1 { color: #f0f6f1; }

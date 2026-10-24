@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from 'react'
 import {
   Activity,
   AlertCircle,
@@ -7,6 +8,25 @@ import {
   Package,
   Stethoscope,
 } from 'lucide-react'
+import { assessDistrictMonth } from '../services/dashboardService'
+
+function lastCompleteMonth() {
+  const now = new Date()
+  const date = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+function assessmentStatusKind(status) {
+  return status === 'supported' ? 'full' : 'signals'
+}
+
+function supportedAssessmentValues(result) {
+  return result?.prediction_supported === true
+    && (result.prediction === 0 || result.prediction === 1)
+    && Number.isFinite(result.probability_of_reported_case_increase)
+    && result.probability_of_reported_case_increase >= 0
+    && result.probability_of_reported_case_increase <= 1
+}
 
 function PanelTitle({ eyebrow, title, action }) {
   return (
@@ -63,10 +83,50 @@ function InfoPanel({ title, status, children }) {
 }
 
 export function DistrictSignalsPage({ district, apiData }) {
+  const [currentMonth, setCurrentMonth] = useState(lastCompleteMonth)
+  const [assessment, setAssessment] = useState(null)
+  const [assessmentError, setAssessmentError] = useState('')
+  const [assessmentLoading, setAssessmentLoading] = useState(false)
   const history = apiData?.history
   const records = history?.records ?? []
   const score = apiData?.score
   const weather = apiData?.weather
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const monthIsValid = /^\d{4}-(0[1-9]|1[0-2])$/.test(currentMonth)
+
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return
+      setAssessment(null)
+      setAssessmentError('')
+
+      if (!district?.id) {
+        setAssessmentError('Select a backend-supported district to request an assessment.')
+        setAssessmentLoading(false)
+        return
+      }
+      if (!monthIsValid) {
+        setAssessmentError('Choose a valid month in YYYY-MM format.')
+        setAssessmentLoading(false)
+        return
+      }
+
+      setAssessmentLoading(true)
+      assessDistrictMonth(district.id, currentMonth, controller.signal)
+        .then((result) => setAssessment(result))
+        .catch((error) => {
+          if (error.name !== 'AbortError') setAssessmentError(error.message)
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setAssessmentLoading(false)
+        })
+    })
+
+    return () => controller.abort()
+  }, [district?.id, currentMonth])
+
+  const assessmentValuesSupported = supportedAssessmentValues(assessment)
 
   return (
     <div className="workspace-page">
@@ -86,6 +146,60 @@ export function DistrictSignalsPage({ district, apiData }) {
       </div>
 
       <div className="workspace-card-grid">
+        <article className="panel workspace-panel assessment-panel" aria-busy={assessmentLoading}>
+          <div className="workspace-panel-heading">
+            <h3>Reported-case increase assessment</h3>
+            <Status kind={assessmentError ? 'signals' : assessmentStatusKind(assessment?.status)}>
+              {assessmentLoading ? 'loading' : assessmentError ? 'error' : assessment?.status ?? 'unavailable'}
+            </Status>
+          </div>
+
+          <div className="assessment-controls">
+            <label htmlFor="assessment-month">Complete month to assess</label>
+            <input
+              id="assessment-month"
+              type="month"
+              value={currentMonth}
+              onChange={(event) => setCurrentMonth(event.target.value)}
+              aria-describedby="assessment-month-help"
+            />
+            <span id="assessment-month-help">Uses the selected district’s canonical backend ID.</span>
+          </div>
+
+          {assessmentLoading ? (
+            <p role="status">Checking whether complete, current health data supports this assessment…</p>
+          ) : assessmentError ? (
+            <p className="workspace-error" role="alert">
+              <AlertCircle size={15} />
+              {assessmentError}
+            </p>
+          ) : assessment ? (
+            <>
+              <p className="assessment-message" role="status">
+                {assessment.message || 'The backend did not provide an explanation for this assessment status.'}
+              </p>
+              <dl className="assessment-details">
+                <div><dt>Target month</dt><dd>{assessment.target_month ?? 'Not provided'}</dd></div>
+                <div><dt>Prediction cutoff</dt><dd>{assessment.prediction_cutoff ?? 'Not provided'}</dd></div>
+                <div><dt>Health data as of</dt><dd>{assessment.health_data_as_of ?? 'Unavailable'}</dd></div>
+              </dl>
+              {assessmentValuesSupported ? (
+                <div className="assessment-result">
+                  <strong>{assessment.prediction === 1 ? 'Reported total increase' : 'No reported total increase'}</strong>
+                  <span>Probability of reported-case increase: {(assessment.probability_of_reported_case_increase * 100).toFixed(1)}%</span>
+                </div>
+              ) : (
+                <p className="assessment-unavailable">
+                  No current prediction or probability is available. This endpoint does not present historical backtests as current forecasts.
+                </p>
+              )}
+            </>
+          ) : (
+            <p>Assessment is unavailable until a valid month and district are selected.</p>
+          )}
+          <p className="assessment-note">This is a reported-case change assessment, not a confirmed outbreak prediction or clinically validated forecast.</p>
+        </article>
+
         <InfoPanel
           title="Weather"
           status={

@@ -1,104 +1,117 @@
+"""Join daily dengue reports to historical weather using district and date."""
 
 from pathlib import Path
+
 import pandas as pd
+
+try:
+    from .district_aliases import canonical_district_id
+except ImportError:  # Support ``python scripts/merge_dengue_weather.py``.
+    from district_aliases import canonical_district_id
+
 
 ROOT = Path(__file__).resolve().parent.parent
 
 DENGUE_FILE = ROOT / "data" / "processed" / "dengue_karnataka_clean.csv"
 WEATHER_FILE = ROOT / "data" / "processed" / "karnataka_district_weather.csv"
-
 OUTPUT_FILE = ROOT / "data" / "processed" / "dengue_weather_merged.csv"
 REVIEW_FILE = ROOT / "data" / "processed" / "dengue_weather_unmatched_dengue.csv"
 
-def main():
-    dengue = pd.read_csv(DENGUE_FILE)
-    weather = pd.read_csv(WEATHER_FILE)
+DENGUE_DATE = "metadata.recordDate"
+DENGUE_DISTRICT = "district_census2011"
+WEATHER_DATE = "date"
+WEATHER_DISTRICT = "district_name"
+WEATHER_COLUMNS = ["temperature_c", "relative_humidity_pct", "rainfall_mm"]
 
-    # Standardize dates
-    dengue["merge_date"] = pd.to_datetime(
-        dengue["metadata.recordDate"], errors="coerce"
-    ).dt.strftime("%Y-%m-%d")
 
-    weather["date"] = pd.to_datetime(
-        weather["date"], errors="coerce"
-    ).dt.strftime("%Y-%m-%d")
+def merge_dengue_with_weather(dengue, weather):
+    """Left-join all dengue rows to weather on canonical district and exact date.
 
-    # Map known district spelling differences
-    aliases = {
-        "BAGALKOTE": "BAGALKOT",
-        "BALLARI": "BELLARY",
-    }
+    Unmatched dengue rows are retained with null weather fields. In particular,
+    Vijayanagara is not merged into Ballari when its weather series is absent.
+    """
+    required_dengue = {DENGUE_DATE, DENGUE_DISTRICT}
+    required_weather = {WEATHER_DATE, WEATHER_DISTRICT, *WEATHER_COLUMNS}
+    if not required_dengue.issubset(dengue.columns):
+        raise ValueError(f"Dengue input missing columns: {sorted(required_dengue - set(dengue.columns))}")
+    if not required_weather.issubset(weather.columns):
+        raise ValueError(f"Weather input missing columns: {sorted(required_weather - set(weather.columns))}")
 
-    dengue["merge_district"] = (
-        dengue["district_census2011"]
-        .astype(str)
-        .str.strip()
-        .str.upper()
-        .replace(aliases)
-    )
+    dengue_rows = dengue.drop(columns=WEATHER_COLUMNS, errors="ignore").copy()
+    weather_rows = weather[[WEATHER_DATE, WEATHER_DISTRICT, *WEATHER_COLUMNS]].copy()
 
-    weather["merge_district"] = (
-        weather["district_name"]
-        .astype(str)
-        .str.strip()
-        .str.upper()
-    )
+    dengue_rows["_district_id"] = dengue_rows[DENGUE_DISTRICT].map(canonical_district_id)
+    weather_rows["_district_id"] = weather_rows[WEATHER_DISTRICT].map(canonical_district_id)
+    dengue_rows["_exact_date"] = pd.to_datetime(dengue_rows[DENGUE_DATE], errors="coerce").dt.normalize()
+    weather_rows["_exact_date"] = pd.to_datetime(weather_rows[WEATHER_DATE], errors="coerce").dt.normalize()
 
-    # Keep unmatched dengue records for review
-    matched_weather_districts = set(weather["merge_district"].unique())
-    unmatched_mask = ~dengue["merge_district"].isin(matched_weather_districts)
-
-    unmatched = dengue.loc[unmatched_mask].copy()
-    unmatched.drop(columns=["merge_date", "merge_district"], inplace=True)
-    unmatched.to_csv(REVIEW_FILE, index=False)
-
-    # Exclude unmatched district records from the merge
-    dengue_matched = dengue.loc[~unmatched_mask].copy()
-
-    # Select weather columns to attach
-    weather_columns = [
-        "merge_district",
-        "date",
-        "temperature_c",
-        "relative_humidity_pct",
-        "rainfall_mm",
-    ]
-    weather_for_merge = weather[weather_columns].copy()
-
-    # Check weather join keys are unique
-    if weather_for_merge.duplicated(["merge_district", "date"]).any():
-        raise ValueError("Weather contains duplicate district-date keys")
-
-    merged = dengue_matched.merge(
-        weather_for_merge,
-        left_on=["merge_district", "merge_date"],
-        right_on=["merge_district", "date"],
-        how="left",
-        validate="many_to_one",
-        indicator=True,
-    )
-
-    unmatched_dates = merged["_merge"] != "both"
-    if unmatched_dates.any():
-        print("WARNING: Some dengue records did not find matching weather.")
-        print(
-            merged.loc[unmatched_dates, [
-                "district_census2011", "merge_date"
-            ]].head(10).to_string(index=False)
+    weather_keys = weather_rows.dropna(subset=["_district_id", "_exact_date"])
+    duplicate_weather = weather_keys.duplicated(["_district_id", "_exact_date"], keep=False)
+    if duplicate_weather.any():
+        examples = weather_keys.loc[duplicate_weather, [WEATHER_DISTRICT, WEATHER_DATE]].head(5)
+        raise ValueError(
+            "Weather contains duplicate canonical district-date keys:\n"
+            f"{examples.to_string(index=False)}"
         )
 
-    merged.drop(columns=["date", "_merge", "merge_date", "merge_district"], inplace=True)
-    merged.to_csv(OUTPUT_FILE, index=False)
+    dengue_keys = dengue_rows.dropna(subset=["_district_id", "_exact_date"])
+    duplicate_dengue = dengue_keys.duplicated(["_district_id", "_exact_date"], keep=False)
+    if duplicate_dengue.any():
+        examples = dengue_keys.loc[duplicate_dengue, [DENGUE_DISTRICT, DENGUE_DATE]].head(5)
+        raise ValueError(
+            "Dengue contains duplicate canonical district-date keys; resolve them "
+            "from the source before aggregation:\n"
+            f"{examples.to_string(index=False)}"
+        )
 
-    print("\nMerge summary")
-    print("Original dengue rows:", len(dengue))
-    print("Rows merged:", len(merged))
-    print("Dengue rows saved for district review:", len(unmatched))
-    print("Rows without weather match:", int(unmatched_dates.sum()))
-    print("Merged rows with missing weather values:",
-          int(merged[["temperature_c", "relative_humidity_pct", "rainfall_mm"]].isna().any(axis=1).sum()))
+    # Avoid pandas matching null join keys to one another. Unknown district or
+    # invalid-date records remain in the left-side output and receive no weather.
+    weather_keys = weather_keys.rename(columns={WEATHER_DISTRICT: "_weather_district", WEATHER_DATE: "_weather_date"})
+    merged = dengue_rows.merge(
+        weather_keys[["_district_id", "_exact_date", *WEATHER_COLUMNS]],
+        on=["_district_id", "_exact_date"],
+        how="left",
+        validate="many_to_one",
+        indicator="_weather_merge",
+    )
+
+    merged["district_id"] = merged["_district_id"]
+    merged["weather_match_status"] = "matched"
+    merged.loc[merged["_district_id"].isna(), "weather_match_status"] = "unknown_district_name"
+    merged.loc[merged["_exact_date"].isna(), "weather_match_status"] = "invalid_or_missing_date"
+    merged.loc[
+        merged["_district_id"].notna()
+        & merged["_exact_date"].notna()
+        & merged["_weather_merge"].eq("left_only"),
+        "weather_match_status",
+    ] = "no_exact_weather_match"
+    return merged.drop(columns=["_district_id", "_exact_date", "_weather_merge"])
+
+
+def main():
+    dengue = pd.read_csv(DENGUE_FILE, low_memory=False)
+    weather = pd.read_csv(WEATHER_FILE, low_memory=False)
+    merged = merge_dengue_with_weather(dengue, weather)
+
+    unmatched = merged[merged["weather_match_status"] != "matched"].copy()
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    merged.to_csv(OUTPUT_FILE, index=False)
+    unmatched.to_csv(REVIEW_FILE, index=False)
+
+    print("\nDaily merge summary")
+    print("Dengue rows retained:", len(merged))
+    print("Canonical dengue districts:", merged["district_id"].nunique(dropna=True))
+    print("Matched rows:", int(merged["weather_match_status"].eq("matched").sum()))
+    print("Unmatched rows by reason:")
+    print(merged.loc[merged["weather_match_status"] != "matched", "weather_match_status"].value_counts().to_string())
+    if not unmatched.empty:
+        print("Unmatched districts:")
+        print(unmatched[DENGUE_DISTRICT].value_counts(dropna=False).to_string())
+    print("Weather values missing by column:")
+    print(merged[WEATHER_COLUMNS].isna().sum().to_string())
     print("Output:", OUTPUT_FILE)
     print("Review file:", REVIEW_FILE)
+
 
 if __name__ == "__main__":
     main()

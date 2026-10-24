@@ -1,14 +1,19 @@
 
 from typing import Optional
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from zoneinfo import ZoneInfo
 
 from services.history_service import get_district_history
 from services.weather_service import get_district_weather
 from services.scoring_service import calculate_preparedness_score
 from services.early_warning_service import predict_early_warning
+from services.district_month_assessment_service import assess_district_month_request
+from services.district_month_model_contract import DistrictMonthPredictionResponse
+from app.schemas import DistrictMonthAssessmentInput
 
 
 app = FastAPI(
@@ -160,6 +165,27 @@ class EarlyWarningInput(BaseModel):
     rainfall_mm: float = Field(ge=0)
     cases_last_7d: float = Field(ge=0)
     cases_last_14d: float = Field(ge=0)
+
+
+@app.post(
+    "/api/v1/district-month/assess",
+    response_model=DistrictMonthPredictionResponse,
+    summary="Assess next-month reported dengue case increase support",
+    description=(
+        "Returns a support/data status for the candidate district-month model. "
+        "This is not a confirmed outbreak prediction; no candidate artifact is currently approved."
+    ),
+)
+def district_month_assessment(payload: DistrictMonthAssessmentInput):
+    try:
+        result = assess_district_month_request(
+            payload.model_dump(),
+            known_district_ids={district["id"] for district in DISTRICTS},
+            today=datetime.now(ZoneInfo("Asia/Kolkata")).date(),
+        )
+        return result.to_dict()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
 
 
 @app.post("/api/v1/early-warning/predict")

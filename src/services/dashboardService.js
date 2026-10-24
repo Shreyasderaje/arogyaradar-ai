@@ -1,11 +1,12 @@
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001').replace(/\/$/, '')
 
-async function apiRequest(path, signal) {
+async function apiRequest(path, signal, options = {}) {
   let response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
       signal,
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...options.headers },
     })
   } catch (error) {
     if (error.name === 'AbortError') throw error
@@ -53,6 +54,21 @@ export async function getDistrictHistory(districtId, signal) {
 
 export function getDistrictScore(districtId, signal) {
   return apiRequest(`/api/v1/districts/${encodeURIComponent(districtId)}/score`, signal)
+}
+
+export function assessDistrictMonth(districtId, currentMonth, signal) {
+  if (typeof districtId !== 'string' || !districtId.trim()) {
+    throw new Error('Select a district before requesting an assessment.')
+  }
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(currentMonth ?? '')) {
+    throw new Error('Choose a valid month in YYYY-MM format.')
+  }
+
+  return apiRequest('/api/v1/district-month/assess', signal, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ district_id: districtId, current_month: currentMonth }),
+  })
 }
 
 function normalize(value) {
